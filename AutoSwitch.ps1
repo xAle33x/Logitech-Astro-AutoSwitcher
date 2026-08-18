@@ -27,9 +27,9 @@ if (-not (Get-Module -ListAvailable -Name AudioDeviceCmdlets)) {
 Import-Module AudioDeviceCmdlets -ErrorAction SilentlyContinue
 
 # --- USER CONFIGURATION ---
-$global:SpeakerName = "YOUR_SPEAKER_NAME"      # (e.g. "Realtek", "Creative", "Soundbar")
+$global:SpeakerName = "YOUR_SPEAKER_NAME"      # (e.g. "Realtek", "Creative", "Soundbar", doesn't need do be complete, you can write "Creative" and it will select "Creative Stage SE" as speaker)
 $global:HeadsetName = "A50 Game"               # (e.g. "A50 Game", "PRO X Wireless")
-$global:BatteryKey  = "battery/a50/percentage" # Change this if you don't have an Astro A50. See README for instructions.
+$global:BatteryKey  = "battery/a50/percentage" # Change this if you don't have an Astro A50 gen 5. See README for instructions.
 # --------------------------------------------------
 
 $global:GhubDir = "$env:LocalAppData\LGHUB"
