@@ -13,6 +13,11 @@ A lightweight, event-driven PowerShell script that automatically switches Window
 * Logitech G HUB software (Note: Not compatible with the legacy Astro Command Center)
 * Windows PowerShell
 
+## Dependencies
+This script relies on the [AudioDeviceCmdlets](https://github.com/frgnca/AudioDeviceCmdlets) module created by *frgnca* to interact with Windows sound settings. 
+
+**Note on Auto-Installation:** If you do not already have this module, the script is designed to automatically download and install it from the official Microsoft PowerShell Gallery for the *Current User* (no admin rights required) during its very first run.
+
 ## Quick Setup
 1. Download the `AutoSwitch.ps1` script from this repository.
 2. Open the file in a text editor (like Notepad or PowerShell ISE).
