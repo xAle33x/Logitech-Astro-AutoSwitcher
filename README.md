@@ -1,6 +1,6 @@
 # Logitech / Astro Auto-Audio Switcher
 
-A lightweight, event-driven PowerShell script that automatically switches Windows default audio output when you dock or undock your Logitech headset (specifically built and tested with the Astro A50).
+A lightweight, event-driven PowerShell script that automatically switches Windows default audio output when you dock or undock your Logitech headset (specifically built and tested with the Astro A50 Gen5).
 
 ## Features
 * **Zero-Click Switch:** Automatically routes audio to your speakers when the headset is charging, and instantly back to the headset when lifted.
@@ -21,7 +21,7 @@ A lightweight, event-driven PowerShell script that automatically switches Window
 5. Right-click the script and select **Run with PowerShell**.
 
 ## Adapting for Other Logitech Headsets
-This script defaults to the Astro A50. If you use a different wireless Logitech headset (e.g., G Pro X Wireless, G935), you must update the battery identifier string:
+TESTING NEEDED: This script defaults to the Astro A50. If you use a different wireless Logitech headset (e.g., G Pro X Wireless, G935), you must update the battery identifier string:
 1. Press `Win + R`, paste `%LocalAppData%\LGHUB` and press Enter.
 2. Open the `settings.db` file using a text editor like Notepad++.
 3. Press `Ctrl + F` and search for `"isCharging"`.
