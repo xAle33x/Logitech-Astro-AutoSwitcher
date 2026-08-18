@@ -40,14 +40,6 @@ Windows protects your PC by blocking scripts downloaded from the internet by def
 
 **Note: This will open a PowerShell window. You must leave this window open (you can minimize it) for the switcher to work. If you close it, the script stops. For a fully invisible experience, use the Task Scheduler method below.**
 
-## Adapting for Other Logitech Headsets
-TESTING NEEDED: This script defaults to the Astro A50. If you use a different wireless Logitech headset (e.g., G Pro X Wireless, G935), you must update the battery identifier string:
-1. Press `Win + R`, paste `%LocalAppData%\LGHUB` and press Enter.
-2. Open the `settings.db` file using a text editor like Notepad++.
-3. Press `Ctrl + F` and search for `"isCharging"`.
-4. Look at the lines immediately above the match to find your specific battery key (it usually looks like `"battery/device_1234/percentage"` or `"battery/gprox/percentage"`).
-5. Open the PowerShell script and replace `$global:BatteryKey = "battery/a50/percentage"` with your specific key.
-
 ## Run Invisibly on Startup (Task Scheduler)
 To make this script run silently in the background every time you turn on your PC:
 1. Open **Task Scheduler** in Windows and click **Create Task**.
@@ -57,6 +49,14 @@ To make this script run silently in the background every time you turn on your P
 5. Set **Program/script** to: `powershell.exe`
 6. Set **Add arguments** to: `-WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -File "C:\Your\Path\Here\AutoSwitch.ps1"` (Make sure to update the path to wherever you saved the script).
 
+## Adapting for Other Logitech Headsets
+TESTING NEEDED: This script defaults to the Astro A50. If you use a different wireless Logitech headset (e.g., G Pro X Wireless, G935), you must update the battery identifier string following this guide or [BatteryKeyFinder.ps1](https://github.com/xAle33x/Logitech-Astro-AutoSwitcher/blob/main/BatteryKeyFinder.ps1) helper script included in this repository:
+1. Press `Win + R`, paste `%LocalAppData%\LGHUB` and press Enter.
+2. Open the `settings.db` file using a text editor like Notepad++.
+3. Press `Ctrl + F` and search for `"isCharging"`.
+4. Look at the lines immediately above the match to find your specific battery key (it usually looks like `"battery/device_1234/percentage"` or `"battery/gprox/percentage"`).
+5. Open the PowerShell script and replace `$global:BatteryKey = "battery/a50/percentage"` with your specific key.
+   
 ## V1.1 Update: Dual-Switch (Audio & Microphone)
 The script now supports switching both Playback (Speakers) and Recording (Microphone) devices simultaneously! 
 
