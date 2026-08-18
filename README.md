@@ -42,6 +42,17 @@ To make this script run silently in the background every time you turn on your P
 5. Set **Program/script** to: `powershell.exe`
 6. Set **Add arguments** to: `-WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -File "C:\Your\Path\Here\AutoSwitch.ps1"` (Make sure to update the path to wherever you saved the script).
 
+## V1.1 Update: Dual-Switch (Audio & Microphone)
+The script now supports switching both Playback (Speakers) and Recording (Microphone) devices simultaneously! 
+
+If you use a dedicated external microphone (like a Blue Yeti or QuadCast) alongside your headset, you can enable this feature:
+1. Open the script and find the `[RECORDING / MICROPHONE INPUT]` section.
+2. Change `$global:SwitchMicrophone = $false` to `$true`.
+3. Update `$global:ExternalMicName` with the name of your standalone microphone.
+4. Update `$global:HeadsetMicName` with your headset's mic name (defaults to `"A50 Mic"`).
+
+The script will now seamlessly route both your audio output and your microphone input when you dock or undock your headset. If you only care about audio output, leave it set to `$false` and it will ignore your microphones completely.
+
 ## License
 Copyright (c) 2026 xAle33x (Bojo). 
 
