@@ -38,6 +38,8 @@ Windows protects your PC by blocking scripts downloaded from the internet by def
 4. Save the file.
 5. Right-click the script and select **Run with PowerShell**.
 
+**Note: This will open a PowerShell window. You must leave this window open (you can minimize it) for the switcher to work. If you close it, the script stops. For a fully invisible experience, use the Task Scheduler method below.**
+
 ## Adapting for Other Logitech Headsets
 TESTING NEEDED: This script defaults to the Astro A50. If you use a different wireless Logitech headset (e.g., G Pro X Wireless, G935), you must update the battery identifier string:
 1. Press `Win + R`, paste `%LocalAppData%\LGHUB` and press Enter.
