@@ -38,6 +38,6 @@ To make this script run silently in the background every time you turn on your P
 6. Set **Add arguments** to: `-WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -File "C:\Your\Path\Here\AutoSwitch.ps1"` (Make sure to update the path to wherever you saved the script).
 
 ## License
-Copyright (c) 2026 xAle33x. 
+Copyright (c) 2026 xAle33x (Bojo). 
 
 This software is provided under a Personal Use Non-Commercial License. You may use, copy, and modify this script strictly for personal purposes. Any commercial use, including redistribution, integration into commercial software, or use for providing commercial services, is strictly prohibited without the express prior written permission of the author.
