@@ -19,14 +19,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 # Logitech/Astro Auto-Audio Switcher (Event-Driven)
 # =========================================================
 
-# --- PREREQUISITI: Verifica e installazione modulo audio ---
+# --- PREREQUISITES: Audio module check and installation ---
 if (-not (Get-Module -ListAvailable -Name AudioDeviceCmdlets)) {
     Write-Host "[!] 'AudioDeviceCmdlets' module missing. Installing for current user..." -ForegroundColor Yellow
     Install-Module -Name AudioDeviceCmdlets -Scope CurrentUser -Force -AllowClobber
 }
 Import-Module AudioDeviceCmdlets -ErrorAction SilentlyContinue
 
-# --- CONFIGURAZIONE UTENTE / USER CONFIGURATION ---
+# --- USER CONFIGURATION ---
 # [PLAYBACK / AUDIO OUTPUT]
 $global:SpeakerName = "YOUR_SPEAKER_NAME"      # (e.g. "Realtek", "Creative", "Soundbar")
 $global:HeadsetName = "A50 Game"               # (e.g. "A50 Game", "PRO X Wireless")
@@ -34,7 +34,7 @@ $global:HeadsetName = "A50 Game"               # (e.g. "A50 Game", "PRO X Wirele
 # [RECORDING / MICROPHONE INPUT] - OPTIONAL
 $global:SwitchMicrophone = $false              # Set to $true if you want to switch mics too
 $global:ExternalMicName  = "YOUR_MIC_NAME"     # (e.g. "Blue Yeti", "QuadCast")
-$global:HeadsetMicName   = "A50 Mic"         # (e.g. "A50 Mic", "PRO X Wireless")
+$global:HeadsetMicName   = "A50 Mic"           # (e.g. "A50 Mic", "PRO X Wireless")
 
 # [SYSTEM]
 $global:BatteryKey  = "battery/a50/percentage" # Change this if you don't have an Astro A50.
@@ -56,7 +56,7 @@ function global:Get-GhubLiveState {
     } catch { return $null }
 }
 
-# Modificata per filtrare tra Playback e Recording
+# Helper function to filter between Playback and Recording device types
 function global:Get-DeviceIdByName {
     param($SearchName, $Type)
     $Device = Get-AudioDevice -List | Where-Object { $_.Name -like "*$SearchName*" -and $_.Type -like "*$Type*" } | Select-Object -First 1
@@ -67,16 +67,16 @@ function global:Get-DeviceIdByName {
     return $Device.ID
 }
 
-# Risoluzione ID Riproduzione
+# Resolve Playback Device IDs
 $global:SpeakerID = Get-DeviceIdByName $global:SpeakerName "Playback"
 $global:HeadsetID = Get-DeviceIdByName $global:HeadsetName "Playback"
 
-# Risoluzione ID Registrazione (se attivato)
+# Resolve Recording Device IDs (if enabled)
 if ($global:SwitchMicrophone) {
     $global:ExternalMicID = Get-DeviceIdByName $global:ExternalMicName "Recording"
     $global:HeadsetMicID  = Get-DeviceIdByName $global:HeadsetMicName "Recording"
     
-    # Se fallisce la ricerca dei microfoni, disattiva lo switch per evitare errori
+    # Fallback: disable mic switch if requested devices are not found
     if ($null -eq $global:ExternalMicID -or $null -eq $global:HeadsetMicID) {
         Write-Host "[-] Microphone Switch disabled due to missing devices." -ForegroundColor Yellow
         $global:SwitchMicrophone = $false
@@ -113,7 +113,7 @@ $Action = {
                 if ($IsCharging -ne $global:LastKnownState) {
                     $Time = Get-Date -Format "HH:mm:ss"
                     
-                    # Ottieni stati attuali (per evitare switch inutili)
+                    # Get current audio states to prevent redundant switching
                     $CurrentAudio = Get-AudioDevice -Playback
                     $CurrentMic = if ($global:SwitchMicrophone) { Get-AudioDevice -Recording } else { $null }
                     
