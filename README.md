@@ -12,6 +12,7 @@ A lightweight, event-driven PowerShell script that automatically switches Window
 * Windows OS
 * Logitech G HUB software (Note: Not compatible with the legacy Astro Command Center)
 * Windows PowerShell
+* If this is your first time ever running a PowerShell module installation, a prompt might ask you to install the 'NuGet provider'. Simply press Y and hit Enter to allow it.
 
 ## Dependencies
 This script relies on the [AudioDeviceCmdlets](https://github.com/frgnca/AudioDeviceCmdlets) module created by *frgnca* to interact with Windows sound settings. 
