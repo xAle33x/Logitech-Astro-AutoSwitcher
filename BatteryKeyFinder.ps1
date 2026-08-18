@@ -31,3 +31,5 @@ foreach ($file in $Files) {
 }
 Write-Host "-----------------------------------------------`n" -ForegroundColor Cyan
 Write-Host "Copy the key that looks like 'battery/YOUR_HEADSET/percentage' and paste it into the main AutoSwitch script." -ForegroundColor Green
+Write-Host "`n"
+Read-Host "Press Enter to exit..."
