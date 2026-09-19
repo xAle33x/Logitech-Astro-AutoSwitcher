@@ -1,109 +1,216 @@
-## Logitech / Astro Auto-Audio Switcher
+# Logitech / Astro Auto-Audio Switcher
 
-A lightweight, event-driven PowerShell script that automatically switches Windows default audio output when you dock or undock your Logitech headset (specifically built and tested with the Astro A50 Gen5).
+A lightweight, event-driven PowerShell script that automatically switches the Windows default audio device when you dock or undock your Logitech headset (built and tested with the Astro A50 Gen5).
 
 > **⚠️ September 2026 — Important update (v2.0)**
-> A recent G HUB update changed how the charging state is stored. **Scripts from v1.x no longer detect undocking and will appear to "stop working".** If your switcher stopped reacting, update to v2.0. See [What changed in v2.0](#v20-update-g-hub-compatibility-fix) below.
+> A recent G HUB update changed how the charging state is stored. **Scripts from v1.x no longer detect undocking and will appear to "stop working".** If your switcher stopped reacting, update to v2.0. See [What changed in v2.0](#v20-update-g-hub-compatibility-fix--setup-wizard) below.
 
-### Features
-- **Zero-Click Switch:** Automatically routes audio to your speakers when the headset is charging, and instantly back to the headset when lifted.
-- **Event-Driven:** Uses System.IO.FileSystemWatcher to sit at ~0% CPU usage in the background until G HUB physically writes to its database, plus a lightweight safety poll so a missed filesystem event can never leave the script stuck.
-- **WAL-Aware:** Reads both settings.db and settings.db-wal and picks the entry with the most recent timestamp, so stale SQLite write-ahead-log pages can't cause a wrong switch.
-- **Conflict-Free:** Uses balanced-brace JSON block isolation to prevent false audio switches if you plug in another Logitech device to charge (like a G502 Lightspeed mouse).
-- **Late-Binding Device IDs:** Audio device IDs are resolved at switch time, not at startup, so it works correctly even though the headset disappears from Windows when powered off.
-- **Auto-Setup:** Automatically installs the required AudioDeviceCmdlets module for the current user on its first run.
+> **No more editing the script.** Since v2.0 the first launch runs an interactive setup wizard that lists your actual devices and saves your choices to a separate config file.
 
-### Prerequisites
-- Windows OS
-- Logitech G HUB software (Note: Not compatible with the legacy Astro Command Center)
-- Windows PowerShell
-- If this is your first time ever running a PowerShell module installation, a prompt might ask you to install the 'NuGet provider'. Simply press Y and hit Enter to allow it.
+---
+
+## Features
+
+- **Zero-Click Switch** — routes audio to your speakers when the headset is charging, and instantly back to the headset when you lift it.
+- **Interactive First-Run Setup** — numbered pickers for playback devices, recording devices and the G HUB battery key. No source editing, no guessing device names.
+- **External Configuration** — settings live in `A50-AutoSwitch.config.json` next to the script. The script never rewrites itself, so it stays git-friendly and signature-safe.
+- **Event-Driven** — uses `System.IO.FileSystemWatcher` to sit at ~0% CPU until G HUB writes to its database, plus a lightweight safety poll so a missed filesystem event can never leave the script stuck.
+- **WAL-Aware** — reads both `settings.db` and `settings.db-wal` and picks the entry with the most recent timestamp, so stale SQLite write-ahead-log pages can't cause a wrong switch.
+- **Conflict-Free** — balanced-brace JSON isolation prevents false switches when another Logitech device is charging (e.g. a G502 Lightspeed).
+- **Late-Binding Device IDs** — resolved at switch time, not at startup, so it works even though the headset disappears from Windows when powered off.
+- **Auto-Setup** — installs the required AudioDeviceCmdlets module for the current user on first run.
+
+---
+
+## Prerequisites
+
+- Windows
+- Logitech G HUB (**not** compatible with the legacy Astro Command Center)
+- Windows PowerShell 5.1 or PowerShell 7
+- On the very first module installation, Windows may prompt for the **NuGet provider** — press `Y` and Enter.
 
 ### Dependencies
 
-This script relies on the [AudioDeviceCmdlets](https://github.com/frgnca/AudioDeviceCmdlets) module created by _frgnca_ to interact with Windows sound settings.
-**Note on Auto-Installation:** If you do not already have this module, the script is designed to automatically download and install it from the official Microsoft PowerShell Gallery for the _Current User_ (no admin rights required) during its very first run.
+This script relies on the [AudioDeviceCmdlets](https://github.com/frgnca/AudioDeviceCmdlets) module by *frgnca* to interact with Windows sound settings.
 
-### Troubleshooting
+**Auto-installation:** if the module is missing, the script downloads and installs it from the official PowerShell Gallery for the *Current User* — no admin rights required.
 
-**Script closes immediately or shows a red error?** Windows protects your PC by blocking scripts downloaded from the internet by default. To fix this, follow these steps:
-- **Unblock the downloaded file:** Right-click the AutoSwitch.ps1 file, select **Properties**, check the **Unblock** box at the bottom of the _General_ tab, and click **OK**. _(Alternatively, run Unblock-File -Path .\AutoSwitch.ps1 in PowerShell)._
-- **Enable local script execution:** If the script still doesn't run, your system might have PowerShell scripts completely disabled.
-Open PowerShell as Administrator, paste this command: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser, press Y to confirm, and try running the script again.
+---
 
-**Script runs but never switches (or only switches one way)?** This is almost always a G HUB format change. Run the included [Diagnose-GHUB.ps1](https://github.com/xAle33x/Logitech-Astro-AutoSwitcher/blob/main/Diagnose-GHUB.ps1) helper **twice** — once with the headset on the base, once with it removed — and compare the two outputs. It prints every battery key found, the full JSON block behind each one, and which fields actually change between docked and undocked.
+## Quick Setup
 
-**Startup line says `Stato iniziale: SCONOSCIUTO` / `Initial state: UNKNOWN`?** The script could not find a readable battery block. Either your battery key differs (see [Adapting for Other Logitech Headsets](#adapting-for-other-logitech-headsets)) or G HUB no longer persists the state to disk.
+1. Download `AutoSwitch.ps1` from this repository.
+2. **Unblock it** — right-click → **Properties** → check **Unblock** → OK. (See [Troubleshooting](#troubleshooting).)
+3. Turn on your headset and **take it off the base**, so every audio endpoint is visible to Windows.
+4. Right-click the script → **Run with PowerShell**.
 
-### Quick Setup
-- Download the AutoSwitch.ps1 script from this repository.
-- Open the file in a text editor (like Notepad or PowerShell ISE).
-- Under the USER CONFIGURATION section, change $global:SpeakerName to match a portion of your speaker's name as it appears in Windows (e.g., "Realtek", "Creative", or "Soundbar").
-- Save the file.
-- Right-click the script and select **Run with PowerShell**.
-**Note: This will open a PowerShell window. You must leave this window open (you can minimize it) for the switcher to work. If you close it, the script stops. For a fully invisible experience, use the Task Scheduler method below.**
-
-On startup the script prints the detected state and the timestamp of the database entry it used, for example:
+On first launch the setup wizard starts automatically:
 
 ```
-[-] Initial state: UNDOCKED (in use)  [entry from 2026-09-19 13:21:45 UTC]
-[!] A50 Auto-Switcher v2.0 started. CTRL+C to stop.
-[15:22:34] >>> DOCKED: audio -> Creative Stage SE
-[15:22:42] >>> UNDOCKED: audio -> A50 Voice
+==================================================
+   A50 Auto-Switcher - configuration wizard
+==================================================
+
+1/5 - Playback device to use while the headset is DOCKED (e.g. desktop speakers):
+  [ 1] Headset Earphone (2- A50 Voice)
+  [ 2] Speakers (Creative Stage SE) (current default)
+  [ 3] Headphones (2- A50 Game)
+  [ m] type a name fragment manually (use this if the device is currently off)
+Selection:
 ```
 
-If that timestamp is old or the state is wrong, you're reading a stale entry — see Troubleshooting.
+You'll be asked for five things, then for the G HUB device to monitor:
 
-### Run Invisibly on Startup (Task Scheduler)
+| Step | Question |
+|------|----------|
+| 1 | Playback device while **docked** (your speakers) |
+| 2 | Playback device while **undocked** (the headset) |
+| 3 | Switch the microphone too? `[Y/n]` |
+| 4 | Recording device while **docked** (desk/virtual mic) |
+| 5 | Recording device while **undocked** (headset mic) |
+| — | Which `battery/…/percentage` key to monitor |
 
-To make this script run silently in the background every time you turn on your PC:
-- Open **Task Scheduler** in Windows and click **Create Task**.
-- **General tab:** Name the task (e.g., "Astro AutoSwitch") and check _Run only when user is logged on_.
-- **Triggers tab:** Click _New_ and choose Begin the task: _At log on_.
-- **Actions tab:** Click _New_ and choose Action: _Start a program_.
-- Set **Program/script** to: powershell.exe
-- Set **Add arguments** to: -WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -File "C:\Your\Path\Here\AutoSwitch.ps1" (Make sure to update the path to wherever you saved the script).
+Answer `n` at step 3 to switch playback only and skip steps 4–5 entirely.
 
-### Adapting for Other Logitech Headsets
+After a summary and confirmation, the configuration is written to `A50-AutoSwitch.config.json` and the switcher starts:
 
-TESTING NEEDED: This script defaults to the Astro A50. If you use a different wireless Logitech headset (e.g., G Pro X Wireless, G935), you must update the battery identifier string using the [Diagnose-GHUB.ps1](https://github.com/xAle33x/Logitech-Astro-AutoSwitcher/blob/main/Diagnose-GHUB.ps1) helper script included in this repository, or manually:
+```
+[-] Config: C:\Scripts\A50-AutoSwitch.config.json
+[-] Initial state: UNDOCKED (in use)  [block dated 2026-09-19 13:21:45 UTC]
+[!] A50 Auto-Switcher v2.0 running. Press CTRL+C to stop.
+[15:22:34] >>> DOCKED: playback -> Speakers (Creative Stage SE)
+[15:22:42] >>> UNDOCKED: playback -> Headset Earphone (2- A50 Voice)
+```
 
-- Press Win + R, paste %LocalAppData%\LGHUB and press Enter.
-- Open the settings.db file using a text editor like Notepad++.
-- Press Ctrl + F and search for "battery/" — **not** for "isCharging". Since the G HUB update, the isCharging field only exists while the device is charging, so searching for it while your headset is off the base finds nothing.
-- You will see one key per wireless device, e.g. "battery/a50/percentage" and "battery/g502wireless/percentage". Pick the one matching your headset.
-- Open the PowerShell script and replace $global:BatteryKey = "battery/a50/percentage" with your specific key.
+If that timestamp is old or the state is wrong, you're reading a stale entry — see [Troubleshooting](#troubleshooting).
 
-> **Tip:** do this comparison with the headset **on the base**, so the charging field is present and you can confirm you picked the right device.
+> **Leave the PowerShell window open** (minimised is fine) for the switcher to work. Closing it stops the script. For a fully invisible experience, use the [Task Scheduler method](#run-invisibly-on-startup-task-scheduler) below.
 
-### V2.0 Update: G HUB Compatibility Fix
+### Command-line options
 
-A G HUB update in September 2026 changed the shape of the battery block. Previously the script could rely on reading an explicit true/false flag. Now:
+| Parameter | What it does |
+|-----------|--------------|
+| *(none)* | Runs the wizard if no config exists, then starts the switcher |
+| `-Setup` | Re-runs the wizard and overwrites the existing configuration |
+| `-DebugState` | Dumps every battery block found, the winning one and the resulting state, then exits **without touching your audio devices** |
+| `-ListDevices` | Prints all playback and recording devices as Windows reports them, then exits |
+| `-ConfigPath <path>` | Uses a config file somewhere other than next to the script |
 
-- When the headset is **on the base**, the block is `{ "isCharging": true, "percentage": 95, "time": "..." }`
-- When the headset is **removed**, the field is simply gone: `{ "percentage": 95, "time": "..." }`
+### Configuration file
 
-G HUB **no longer writes `"isCharging": false`** — the *absence* of the field is the undocked signal. Any v1.x script waiting for a false value will never match it, so it detects docking but never undocking (or stops switching entirely).
+```json
+{
+  "Version": 5,
+  "Created": "2026-09-19T15:30:00.0000000+02:00",
+  "SpeakerName": "Speakers (Creative Stage SE)",
+  "HeadsetName": "Headset Earphone (2- A50 Voice)",
+  "SwitchMicrophone": true,
+  "ExternalMicName": "Microphone (Virtual Audio)",
+  "HeadsetMicName": "Headset Microphone (2- A50 Mic)",
+  "BatteryKey": "battery/a50/percentage",
+  "PollSeconds": 3
+}
+```
 
-v2.0 also fixes a subtler, pre-existing reliability bug: settings.db-wal is a SQLite write-ahead log containing historical pages, and its entries are **not** in chronological order. Taking "the last textual match" could return a stale state. v2.0 now collects every matching block from both settings.db and settings.db-wal, parses the ISO 8601 `time` field of each, and uses the most recent one.
+Edit it by hand if you prefer — device names are matched **exactly first, then as a substring**, so both a full name and a short fragment work. Delete the file (or run `-Setup`) to start over.
 
-Additional changes in this release:
-- Balanced-brace JSON parsing replaces the old non-greedy regex, which broke on nested objects.
-- Audio device IDs are resolved at switch time rather than cached at startup, fixing failures caused by the headset disappearing from Windows while powered off.
-- A configurable safety poll (default 3s, with debouncing) complements the FileSystemWatcher.
-- A missing audio device is now logged instead of terminating the script.
+---
 
-### V1.1 Update: Dual-Switch (Audio & Microphone)
+## Troubleshooting
 
-The script supports switching both Playback (Speakers) and Recording (Microphone) devices simultaneously!
-If you use a dedicated external microphone (like a Blue Yeti or QuadCast) alongside your headset, you can enable this feature:
-- Open the script and find the \[RECORDING / MICROPHONE INPUT\] section.
-- Change $global:SwitchMicrophone = $false to $true.
-- Update $global:ExternalMicName with the name of your standalone microphone.
-- Update $global:HeadsetMicName with your headset's mic name (defaults to "A50 Mic").
-The script will now seamlessly route both your audio output and your microphone input when you dock or undock your headset. If you only care about audio output, leave it set to $false and it will ignore your microphones completely.
+**Script closes immediately or shows a red error?**
+Windows blocks scripts downloaded from the internet by default.
+- **Unblock the file:** right-click `AutoSwitch.ps1` → **Properties** → check **Unblock** on the *General* tab → **OK**. *(Or run `Unblock-File -Path .\AutoSwitch.ps1`.)*
+- **Enable local script execution:** open PowerShell as Administrator and run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`, press `Y`, then try again.
 
-### License
+**Script runs but never switches (or only switches one way)?**
+Run `.\AutoSwitch.ps1 -DebugState` **twice** — once with the headset on the base, once with it removed — and compare. It prints every block found, its timestamp, and which one won. If the `Charging` column doesn't flip between the two runs, the detection is the problem, not the audio switching.
+
+For a deeper look, the [Diagnose-GHUB.ps1](https://github.com/xAle33x/Logitech-Astro-AutoSwitcher/blob/main/Diagnose-GHUB.ps1) helper dumps every battery key G HUB exposes, the full JSON behind each, and which fields change between docked and undocked.
+
+**Startup line says `Initial state: UNKNOWN`?**
+The script found no readable battery block. Either the wrong key was selected during setup (re-run with `-Setup`) or G HUB no longer persists the state to disk.
+
+**A device is missing from the wizard's list?**
+Wireless endpoints vanish from Windows when powered off. Turn the headset on and take it off the base, or pick `m` and type a name fragment manually.
+
+**Wrong headset endpoint gets selected?**
+The A50 exposes two playback endpoints, *Voice* and *Game*. Re-run `-Setup` and pick the other one.
+
+---
+
+## Run Invisibly on Startup (Task Scheduler)
+
+Complete the wizard at least once **before** setting this up — the scheduled task runs hidden and can't show interactive prompts.
+
+1. Open **Task Scheduler** → **Create Task**.
+2. **General:** name it (e.g. "Astro AutoSwitch") and check *Run only when user is logged on*.
+3. **Triggers:** *New* → Begin the task: *At log on*.
+4. **Actions:** *New* → Action: *Start a program*.
+   - **Program/script:** `powershell.exe`
+   - **Add arguments:** `-WindowStyle Hidden -ExecutionPolicy Bypass -NoProfile -File "C:\Your\Path\Here\AutoSwitch.ps1"`
+
+---
+
+## Adapting for Other Logitech Devices
+
+**TESTING NEEDED.** The script is built around the Astro A50, but nothing is hard-coded to it. If you use a different wireless Logitech headset (G Pro X Wireless, G935, …), just pick your device's key from the wizard's list — it enumerates every `battery/<device>/percentage` key G HUB currently exposes:
+
+```
+Which G HUB device should be monitored for charge state?
+  [ 1] battery/a50/percentage
+  [ 2] battery/g502wireless/percentage
+```
+
+**Tip:** run the wizard with the device **on its charger**, so the charging field is present and you can confirm the choice with `-DebugState`.
+
+To inspect the raw data manually instead: press `Win + R`, paste `%LocalAppData%\LGHUB`, open `settings.db` in a text editor, and search for `"battery/"` — **not** for `isCharging`. Since the G HUB update that field only exists while the device is charging, so searching for it with the headset off the base finds nothing.
+
+Whether the same absent-field convention holds for non-A50 devices is unconfirmed — reports welcome via issues.
+
+---
+
+## V2.0 Update: G HUB Compatibility Fix + Setup Wizard
+
+A G HUB update in September 2026 changed the shape of the battery block. Previously the script could rely on an explicit true/false flag. Now:
+
+- Headset **on the base:** `{ "isCharging": true, "percentage": 95, "time": "..." }`
+- Headset **removed:** `{ "percentage": 95, "time": "..." }`
+
+G HUB **no longer writes `"isCharging": false`** — the *absence* of the field is the undocked signal. Any v1.x script waiting for a false value never matches it, so it detects docking but never undocking (or stops switching entirely).
+
+### Reliability fixes
+
+- **WAL ordering.** `settings.db-wal` is a SQLite write-ahead log containing historical pages, and its entries are **not** in chronological order. Taking "the last textual match" could return a stale state. v2.0 collects every matching block from both files, parses each `time` field, and uses the most recent — with a deterministic tie-break (WAL beats DB, higher offset beats lower) when timestamps are identical.
+- **Two timestamp formats.** G HUB writes `time` as both ISO 8601 (`"2026-09-19T13:03:48Z"`) and Unix epoch (`"1789807057"`). Both are now parsed; previously the epoch variant was silently discarded.
+- **Culture-invariant parsing.** ISO timestamps could be misparsed on non-English Windows locales.
+- **`$Matches` clobbering.** A subsequent `-match` inside the same loop iteration reset the automatic `$Matches` variable, risking values carried over from the previous iteration. Replaced with explicit `[regex]::Match()` captures.
+- **PowerShell 5.1 crash.** `[DateTime]::TryParse` with `[ref]` on an untyped variable throws `MethodCountCouldNotFindBest` on Windows PowerShell 5.1. Replaced with a dedicated parser.
+- **Balanced-brace JSON parsing** replaces the old non-greedy regex, which broke on nested objects.
+- **Late-binding device IDs** — resolved at switch time rather than cached at startup, fixing failures caused by the headset disappearing from Windows while powered off.
+- **Exact-then-substring device matching**, so `A50 Voice` can never be confused with `A50 Game`.
+- **Configurable safety poll** (default 3s, debounced) complements the FileSystemWatcher.
+- **A missing audio device is logged**, not fatal.
+
+### Usability
+
+- Interactive first-run wizard with numbered device pickers.
+- Battery key auto-discovery from `settings.db`.
+- External JSON configuration — the script itself is never modified.
+- New `-DebugState`, `-ListDevices` and `-ConfigPath` options.
+
+---
+
+## V1.1 Update: Dual-Switch (Audio & Microphone)
+
+The script switches both Playback (speakers) and Recording (microphone) devices simultaneously. If you use a dedicated external microphone (Blue Yeti, QuadCast, …) alongside your headset, answer `Y` at step 3 of the wizard and pick both microphones.
+
+In v1.x this required editing `$global:SwitchMicrophone` by hand; the wizard now handles it. Answer `n` to ignore microphones completely and switch playback only.
+
+---
+
+## License
 
 Copyright (c) 2026 xAle33x (Bojo).
-This software is provided under a Personal Use Non-Commercial License. You may use, copy, and modify this script strictly for personal purposes. Any commercial use, including redistribution, integration into commercial software, or use for providing commercial services, is strictly prohibited without the express prior written permission of the author.
+
+This software is provided under a **Personal Use Non-Commercial License**. You may use, copy, and modify this script strictly for personal purposes. Any commercial use — including redistribution, integration into commercial software, or use for providing commercial services — is strictly prohibited without the express prior written permission of the author.
