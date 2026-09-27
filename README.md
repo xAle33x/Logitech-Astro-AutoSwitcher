@@ -15,7 +15,7 @@ Automatically switches your Windows default audio device when you put a wireless
 1. Download the repository as a ZIP (green **Code** button → *Download ZIP*).
 2. Right-click the ZIP → **Properties** → tick **Unblock** → **OK**, *then* extract it.
 3. Turn your device on and **take it off the base**.
-4. Double-click **`AutoSwitch.bat`** and follow the menu.
+4. Double-click **`AutoSwitch.bat`** and follow the menu (the installation of nuget and AudioDeviceCmdlets takes a little bit the first time, let it cook).
 
 ```
 ==================================================
